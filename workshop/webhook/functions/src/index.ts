@@ -15,13 +15,13 @@ import webhookRouter from './routes/webhook'
 // import beaconRouter from './routes/beacon'
 
 
-// import mongoeRouter from './routes/mongo'
+import mongoeRouter from './routes/mongo'
 
-// import geminiRouter from './routes/gemini'
+import geminiRouter from './routes/gemini'
 
-// import bookingRouter from './routes/booking'
+import bookingRouter from './routes/booking'
 
-// import agenticRouter from './routes/agentic'
+import agenticRouter from './routes/agentic'
 
 // import miniappRouter from './routes/miniapp'
 
@@ -56,15 +56,15 @@ const routes = [
   /* Step 4: Storage route */
   // { path: '/storage', router: storageRouter },
   /* Step 5: MongoDB route */
-  // { path: '/mongo', router: mongoeRouter },
+  { path: '/mongo', router: mongoeRouter },
   /* Step 6: Beacon route */
   // { path: '/beacon', router: beaconRouter },
   /* Step 7: Gemini route */
-  // { path: '/gemini', router: geminiRouter },
+  { path: '/gemini', router: geminiRouter },
   /* Step 8: Booking route */
-  // { path: '/booking', router: bookingRouter },
+  { path: '/booking', router: bookingRouter },
   /* Step 9: Agentic route */
-  // { path: '/agent', router: agenticRouter },
+  { path: '/agent', router: agenticRouter },
   /* Step 10: Miniapp route */
   // { path: '/miniapp', router: miniappRouter },
 ]

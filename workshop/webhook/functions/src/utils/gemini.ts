@@ -95,24 +95,42 @@ export async function multiAudioTranslatemodal(audioBinary: Buffer): Promise<str
     },
   ]
 
+  // const safetySettings = [
+  //   {
+  //     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+  //     threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  //   },
+  //   {
+  //     category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+  //     threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  //   },
+  //   {
+  //     category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+  //     threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  //   },
+  //   {
+  //     category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+  //     threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  //   },
+  // ]
   const safetySettings = [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-  ]
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
+  },
+]
 
   const response = await genAI.models.generateContent({
     model: 'gemini-2.0-flash',

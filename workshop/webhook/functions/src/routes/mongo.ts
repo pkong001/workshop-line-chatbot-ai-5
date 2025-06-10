@@ -13,18 +13,19 @@ import { saveImageToStorage } from '@/utils/firebase'
 import {
   saveLineProfileToMongoDB,
   saveImageMetadataToMongoDB,
+  saveLogMessageToMongoDB,
   upsertRegister,
   getMemberByUserId,
 } from '@/utils/mongo'
 import { welcomeRegister } from '@/messages/message'
 import { Member } from '@/types/mongo'
-
+ 
 const router = express.Router()
-
+ 
 // =========================
 //  MongoDB Route
 // =========================
-
+ 
 router.post('/', async (request: Request, response: Response) => {
   /*
     Step 1: Extract events from request
@@ -33,27 +34,29 @@ router.post('/', async (request: Request, response: Response) => {
       - ถ้า event เป็น message: ดึง profile, save profile ลง MongoDB, และเรียก handleMessage
     Step 4: End the response
   */
-
+ 
   const events: LineEvent[] = request.body.events
-
+ 
   if (!Array.isArray(events)) {
     console.error("Invalid payload: 'events' is not an array", request.body)
     response.status(400).send('Invalid payload')
     return
   }
-
+ 
   for (const event of events) {
     if (event.type === 'message' && event.message) {
       const profile = await getProfileByGroup(event.source.groupId!, event.source.userId!)
-      await saveLineProfileToMongoDB(profile)
-
-      handleMessage(event.message, event.replyToken!, event.source.groupId!)
+     
+      //console.log('profile: ', profile)    
+      //await saveLineProfileToMongoDB(profile)
+      await saveLogMessageToMongoDB(event)
+      //handleMessage(event.message, event.replyToken!, event.source.groupId!)
     }
   }
-
+ 
   response.end()
 })
-
+ 
 async function handleMessage(message: Message, replyToken: string, groupId: string): Promise<void> {
   /*
     Step 1: ตรวจสอบประเภทของ message
@@ -68,7 +71,7 @@ async function handleMessage(message: Message, replyToken: string, groupId: stri
         - ตอบกลับ URL ให้ผู้ใช้
     Step 2: กรณีอื่น ๆ log warning
   */
-
+ 
   switch (message.type) {
     case 'image':
     case 'video':
@@ -77,14 +80,14 @@ async function handleMessage(message: Message, replyToken: string, groupId: stri
       console.log('🖼️ Received Image Message with ID:', message.id)
       const buffer = await getContent(message.id)
       const extension = getExtension(message.fileName!, message.type!)
-
+ 
       console.log(`📦 Content size: ${buffer.length} bytes`)
       console.log(`📦 Extension: ${extension} bytes`)
-
+ 
       if (message.imageSet) {
         message.id = message.id + '_' + message.imageSet.id.toString()
       }
-
+ 
       await reply(replyToken, [
         {
           type: 'text',
@@ -92,13 +95,13 @@ async function handleMessage(message: Message, replyToken: string, groupId: stri
           quoteToken: `${message.quoteToken}`,
         },
       ])
-
+ 
       break
-
+ 
     default:
       if (message.type === 'text' && message.text === 'save') {
         let id = message.quotedMessageId || message.id
-
+ 
         const buffer = await getContent(id)
         const extension = getExtension(message.fileName!, message.type!)
         const publicUrl = await saveImageToStorage(groupId, id, buffer, extension)
@@ -122,7 +125,7 @@ async function handleMessage(message: Message, replyToken: string, groupId: stri
         //   timestamp: getCurrentDateTimeString(),
         //   url: publicUrl,
         // })
-
+ 
          /* step uncomment*/
         // await reply(replyToken, [
         //   {
@@ -132,23 +135,23 @@ async function handleMessage(message: Message, replyToken: string, groupId: stri
         //   },
         // ])
       }
-
+ 
       break
   }
 }
-
+ 
 function getCurrentDateTimeString(): string {
   const now = new Date()
   const day = String(now.getDate()).padStart(2, '0')
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const year = now.getFullYear()
-
+ 
   const hours = String(now.getHours()).padStart(2, '0')
   const minutes = String(now.getMinutes()).padStart(2, '0')
-
+ 
   return `${year}-${month}-${day} ${hours}:${minutes}`
 }
-
+ 
 /* [POST] /mongo/authen
 ฟังก์ชันนี้ใช้สำหรับจัดการ flow การลงทะเบียนและยืนยันตัวตนของสมาชิกในกลุ่ม LINE
 - ถ้า event มาจาก user ที่ไม่ใช่ group จะเล่น animation loading
@@ -162,18 +165,18 @@ function getCurrentDateTimeString(): string {
 */
 router.post('/authen', async (request: Request, response: Response) => {
   const events: LineEvent[] = request.body.events
-
+ 
   if (!Array.isArray(events)) {
     console.error("Invalid payload: 'events' is not an array", request.body)
     response.status(400).send('Invalid payload')
     return
   }
-
+ 
   for (const event of events) {
     if (event.source.type !== 'group') {
       await isAnimationLoading(event.source.userId!)
     }
-
+ 
     if (event.type === 'follow') {
       const profile = await getProfileCache(event.source.userId!)
       await reply(event.replyToken!, [welcomeRegister(profile.displayName)])
@@ -196,21 +199,21 @@ router.post('/authen', async (request: Request, response: Response) => {
               ])
               break
             }
-
+ 
             // ตรวจสอบว่าเป็นเบอร์โทรศัพท์หรือไม่
             const phone = event.message.text?.trim()
             const isPhoneNumber = /^0\d{9}$/.test(phone!)
-
+ 
             console.log('phone: ', phone)
             console.log('isPhoneNumber: ', isPhoneNumber)
-
+ 
             if (isPhoneNumber) {
               // Noted: ตรวจสอบว่ามีการใช้เบอร์โทรนี้แล้วหรือไม่ หากมีแล้วจะไม่ลงทะเบียนซ้ำได้
               // TODO: ตรวจสอบว่ามีการใช้เบอร์โทรนี้แล้วหรือไม่
               // Homework
-
+ 
               const richmenu = process.env.RICH_MENU_MEMBER_ID
-
+ 
               let profileRegister = {
                 ...profile,
                 phoneNumber: phone,
@@ -218,10 +221,10 @@ router.post('/authen', async (request: Request, response: Response) => {
                 richmenu: richmenu,
                 createdAt: new Date(),
               } as Member
-
+ 
               await upsertRegister(profileRegister)
               await richmenuSetIndividual(event.source.userId!, richmenu!)
-
+ 
               await reply(event.replyToken!, [
                 {
                   type: 'text',
@@ -240,23 +243,23 @@ router.post('/authen', async (request: Request, response: Response) => {
                 richmenu: richmenu,
                 updatedAt: new Date(),
               } as Member
-
+ 
               await upsertRegister(profileRegister)
               await richmenuSetIndividual(event.source.userId!, richmenu!)
             }
           }
-
+ 
           break
-
+ 
         default:
           console.warn('⚠️ Unhandled message type:', event.message.type)
-
+ 
           break
       }
     }
   }
-
+ 
   response.end()
 })
-
+ 
 export default router

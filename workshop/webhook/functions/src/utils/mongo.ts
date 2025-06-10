@@ -50,6 +50,26 @@ export async function saveImageMetadataToMongoDB(data: ImageMetadata): Promise<v
   await disconnectDB()
 }
 
+export async function saveLogMessageToMongoDB(messageData: any): Promise<void> {
+  /**
+   * บันทึก log message ลง MongoDB
+   * - ใช้สำหรับเก็บข้อมูล log message ที่เกิดขึ้น
+   * - Limitation: insert ข้อมูลใหม่ทุกครั้ง
+   */
+  await connectDB()
+  const collection = db.collection('log_messages')
+ 
+  var body = messageData
+ 
+  await collection.insertOne({
+    ...body,
+    createdAt: new Date(),
+  })
+ 
+  await disconnectDB()
+}
+ 
+
 export async function upsertRegister(profile: Member): Promise<void> {
   /**
    * upsert ข้อมูลสมาชิก (Member) สำหรับการลงทะเบียน/อัปเดตสถานะ
