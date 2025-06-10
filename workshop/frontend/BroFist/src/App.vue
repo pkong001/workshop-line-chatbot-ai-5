@@ -94,6 +94,7 @@ export default {
       lineVersion: null,
       isInClient: null,
       isApiAvailable: null,
+      isShowButton: false,
       isShowSendMessage: false,
       message: "",
       error: ""
@@ -133,6 +134,7 @@ export default {
           this.isInClient = liff.isInClient();
           if (liff.isInClient()) {
             this.isShowSendMessage = true
+            this.isShowButton = true
           }
           this.isApiAvailable = liff.isApiAvailable('shareTargetPicker'); // ตัวอย่างการตรวจสอบ API
 
