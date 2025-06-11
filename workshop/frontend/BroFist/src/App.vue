@@ -55,11 +55,12 @@
     <!-- ปุ่มสำหรับการส่งข้อความและเปิด browser-->
     <div class="button-group">
       <button v-if="isShowButton" @click="sendMessage" class="btn">Send Message</button>
-      <button @click="openWindowModule" class="btn">Open Website</button>
+      <button @click="openWindowModule" class="btn">Open Windown</button>
     </div>
     <!-- ปุ่มสำหรับการแชร์และ แสกน qrcode-->
     <div class="button-group">
       <button @click="shareMessage" class="btn">Share via LINE</button>
+      <button v-if="isShowButton" @click="openQRCodeModule" class="btn">Scan QR</button>
     </div>
   </div>
 
@@ -148,6 +149,20 @@ export default {
         url: "https://line.me",
         external: true,
       });
+    },
+
+    async openQRCodeModule() {
+      if (this.isInClient) {
+        await liff
+          .scanCodeV2()
+          .then((result) => {
+            alert(JSON.stringify(result))
+          })
+          .catch((error) => {
+            console.log("error", error);
+          });
+
+      }
     },
 
     // ฟังก์ชันสำหรับส่งข้อความ
@@ -359,7 +374,3 @@ export default {
 }
 </style>
 ````
-
-
-**note**
-When the chat_message.write scope is disabled after the LIFF-to-LIFF transition. For more information, see About the "chat_message.write" scope after transitioning between LIFF apps in the LIFF
